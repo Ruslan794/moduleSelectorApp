@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    container_name: module-selector-app
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:h2:file:/app/data/app-db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    volumes:
+      - ./data:/app/data
+    networks:
+      - module-selector-network
+
+networks:
+  module-selector-network:
+    driver: bridge
