@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${subject.id == null ? 'Add New Subject' : 'Edit Subject'}">Subject Form</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 th:text="${subject.id == null ? 'Add New Subject' : 'Edit Subject: ' + subject.name}">Subject Form</h1>
+        <a th:href="${subject.id == null ? '/secured/courses' : '/secured/courses/' + subject.id}" class="btn btn-outline-secondary">
+            <span th:text="${subject.id == null ? 'Back to Courses' : 'Back to Subject Details'}">Back</span>
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <form th:action="${subject.id == null ? '/secured/subjects/add' : '/secured/subjects/update/' + subject.id}"
+                  th:object="${subject}" method="post">
+
+                <div class="mb-3">
+                    <label for="name" class="form-label">Subject Name</label>
+                    <input type="text" class="form-control" id="name" th:field="*{name}" required
+                           placeholder="e.g., Computer Science">
+                    <div class="form-text text-danger" th:if="${#fields.hasErrors('name')}" th:errors="*{name}">
+                        Name error
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <span th:text="${subject.id == null ? 'Create Subject' : 'Update Subject'}">Save</span>
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

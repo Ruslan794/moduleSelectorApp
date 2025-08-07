@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Edit Optional Group: ' + ${group.name}">Optional Group Form</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .course-item {
+            padding: 8px 15px;
+            border-left: 3px solid #198754;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1 th:text="'Edit Optional Group: ' + ${group.name}">Optional Group Form</h1>
+            <a th:href="@{/secured/courses/{id}(id=${param.subjectId})}" class="btn btn-outline-secondary">
+                Back to Subject
+            </a>
+        </div>
+
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card mb-4">
+                    <div class="card-header bg-success text-white">
+                        <h3 class="card-title mb-0">Group Details</h3>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/secured/optional-groups/update/{id}(id=${group.id})}" method="post" id="groupForm">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Group Name</label>
+                                <input type="text" class="form-control" id="name" name="name" th:value="${group.name}" required>
+                            </div>
+
+                            <div class="mb-3">
+                                <label for="semester" class="form-label">Semester</label>
+                                <select class="form-select" id="semester" name="semester">
+                                    <option th:each="sem : ${#numbers.sequence(1, 8)}"
+                                            th:value="${sem}"
+                                            th:text="${sem}"
+                                            th:selected="${sem == group.semester}">1</option>
+                                </select>
+                            </div>
+
+                            <input type="hidden" name="subjectId" th:value="${param.subjectId}">
+
+                            <button type="submit" class="btn btn-success">Update Group</button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="card-title mb-0">Add Course to Group</h3>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/secured/optional-groups/{groupId}/add-course(groupId=${group.id})}" method="post">
+                            <div class="mb-3">
+                                <label for="courseId" class="form-label">Select Course</label>
+                                <select class="form-select" id="courseId" name="courseId" required>
+                                    <option value="">-- Select a course --</option>
+                                    <option th:each="course : ${allCourses}"
+                                            th:value="${course.id}"
+                                            th:text="${course.code} + ' - ' + ${course.name} + ' (Semester ' + ${course.semester} + ')'">
+                                        Course
+                                    </option>
+                                </select>
+                            </div>
+
+                            <input type="hidden" name="subjectId" th:value="${param.subjectId}">
+
+                            <button type="submit" class="btn btn-primary">Add Course</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h3 class="card-title mb-0">Courses in Group</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="list-group">
+                            <div class="list-group-item d-flex justify-content-between align-items-center course-item"
+                                 th:each="course : ${group.coursesToChoose}">
+                                <div>
+                                    <strong th:text="${course.code} + ' - ' + ${course.name}">CS101 - Introduction to Programming</strong>
+                                    <span class="badge bg-secondary" th:text="'Semester ' + ${course.semester}">Semester 1</span>
+                                </div>
+                                <div>
+                                    <a th:href="@{/secured/optional-groups/{groupId}/remove-course/{courseId}(groupId=${group.id},courseId=${course.id},subjectId=${param.subjectId})}"
+                                       class="btn btn-sm btn-outline-danger"
+                                       onclick="return confirm('Are you sure you want to remove this course from the group?')">
+                                        Remove
+                                    </a>
+                                </div>
+                            </div>
+                            <div class="list-group-item text-muted" th:if="${#lists.isEmpty(group.coursesToChoose)}">
+                                No courses in this group. Add courses from the left panel.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
