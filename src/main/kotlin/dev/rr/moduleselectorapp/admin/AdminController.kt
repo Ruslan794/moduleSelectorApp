@@ -221,7 +221,6 @@ class AdminController(
         @PathVariable groupId: UUID,
         @RequestParam name: String,
         @RequestParam code: String,
-        @RequestParam semester: Int,
         @RequestParam subjectId: UUID,
         redirectAttributes: RedirectAttributes
     ): String {
@@ -231,7 +230,7 @@ class AdminController(
             val newCourse = Course().apply {
                 this.name = name
                 this.code = code
-                this.semester = semester
+                this.semester = group.semester
                 this.optionalGroup = group
                 this.isCompulsory = false
             }
@@ -339,7 +338,6 @@ class AdminController(
         @RequestParam name: String,
         @RequestParam code: String,
         @RequestParam semester: Int,
-        @RequestParam isCompulsory: Boolean,
         @RequestParam subjectId: UUID,
         redirectAttributes: RedirectAttributes
     ): String {
@@ -351,7 +349,7 @@ class AdminController(
                 this.code = code
                 this.semester = semester
                 this.abroadSemester = abroadSemester
-                this.isCompulsory = isCompulsory
+                this.isCompulsory = true
             }
 
             abroadSemester.courses.add(newCourse)

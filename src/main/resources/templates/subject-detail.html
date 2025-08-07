@@ -117,12 +117,10 @@
                   method="post" class="d-inline-flex align-items-center">
                 <input type="text" class="form-control" id="subjectName" name="name" th:value="${subject.name}">
                 <button type="submit" class="btn btn-sm btn-primary ms-2">Save</button>
-                <button type="button" class="btn btn-sm btn-secondary ms-2" onclick="cancelEditName()">Cancel</button>
             </form>
         </div>
         <div>
-            <a th:href="@{/secured/subjects}" class="btn btn-outline-secondary me-2">Back to Subjects</a>
-            <a th:href="@{/secured/subjects/edit/{id}(id=${subject.id})}" class="btn btn-primary">Edit Subject</a>
+            <a th:href="@{/secured/subjects}" class="btn btn-outline-secondary">Back to Subjects</a>
         </div>
     </div>
 
@@ -471,11 +469,6 @@
     function editSubjectName() {
         document.getElementById('subjectNameDisplay').style.display = 'none';
         document.getElementById('subjectNameForm').style.display = 'flex';
-    }
-
-    function cancelEditName() {
-        document.getElementById('subjectNameDisplay').style.display = 'block';
-        document.getElementById('subjectNameForm').style.display = 'none';
     }
 
     function deleteSubject() {

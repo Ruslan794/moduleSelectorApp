@@ -57,22 +57,13 @@
                             <input type="text" class="form-control" id="courseCode" name="code" placeholder="e.g., CS101" required>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="courseSemester" class="form-label">Semester</label>
-                            <select class="form-select" id="courseSemester" name="semester" required>
-                                <option th:each="sem : ${#numbers.sequence(1, 8)}"
-                                        th:value="${sem}"
-                                        th:text="${sem}"
-                                        th:selected="${sem == group.semester}">1</option>
-                            </select>
-                        </div>
-
                         <input type="hidden" name="subjectId" th:value="${param.subjectId}">
 
                         <button type="submit" class="btn btn-primary">Add New Course</button>
                     </form>
                 </div>
             </div>
+
         </div>
 
         <div class="col-md-6">
