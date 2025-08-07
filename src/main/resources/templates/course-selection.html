@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Review Your Selection</title>
+    <title>Select Your Courses</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .step-indicator {
@@ -39,28 +39,35 @@
             background-color: #198754;
             color: white;
         }
+        .semester-card {
+            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        .semester-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px 20px;
+            font-weight: bold;
+        }
         .course-item {
-            padding: 12px 18px;
-            margin-bottom: 8px;
-            border-radius: 8px;
-            border-left: 4px solid;
+            padding: 10px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            margin: 5px 0;
+            border-radius: 5px;
         }
         .compulsory-course {
-            border-left-color: #0d6efd;
-            background-color: #f0f7ff;
+            background-color: #e7f3ff;
+            border-left: 4px solid #007bff;
         }
         .optional-course {
-            border-left-color: #198754;
-            background-color: #f0fff4;
+            background-color: #e8f5e8;
+            border-left: 4px solid #28a745;
         }
         .abroad-course {
-            border-left-color: #dc3545;
             background-color: #fff0f0;
-        }
-        .summary-card {
-            border: none;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            border-radius: 15px;
+            border-left: 4px solid #dc3545;
         }
         .student-info {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -69,32 +76,36 @@
             padding: 20px;
             margin-bottom: 30px;
         }
-        .confirmation-section {
-            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-            color: white;
-            border-radius: 15px;
-            padding: 30px;
-            text-align: center;
-            margin-top: 30px;
-        }
-        .edit-links {
-            position: sticky;
-            top: 20px;
-            z-index: 100;
-        }
-        .course-count {
-            font-size: 2rem;
-            font-weight: bold;
+        .selection-button {
+            border: 2px solid #28a745;
+            background: white;
             color: #28a745;
+            padding: 8px 15px;
+            border-radius: 20px;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .selection-button:hover {
+            background: #28a745;
+            color: white;
+        }
+        .selection-button.selected {
+            background: #28a745;
+            color: white;
         }
     </style>
 </head>
 <body class="bg-light">
 <div class="container py-4">
     <div class="student-info">
-        <h2>Final Review</h2>
-        <p class="mb-0">Student: <span th:text="${selection.surveyData.name + ' ' + selection.surveyData.surname}">Student Name</span></p>
-        <p class="mb-0">Email: <span th:text="${selection.surveyData.email}">email@example.com</span></p>
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h2>Course Selection</h2>
+                <p class="mb-0">Student: <span th:text="${selection.surveyData.name + ' ' + selection.surveyData.surname}">Student Name</span></p>
+                <p class="mb-0">Subject: <span th:text="${subject.name}">Subject Name</span></p>
+            </div>
+            <a href="/survey" class="btn btn-outline-light">Change Personal Data</a>
+        </div>
     </div>
 
     <div class="step-indicator">
@@ -102,11 +113,11 @@
             <div class="step-number">✓</div>
             <span>Select Subject</span>
         </div>
-        <div class="step completed">
-            <div class="step-number">✓</div>
+        <div class="step active">
+            <div class="step-number">2</div>
             <span>Choose Courses</span>
         </div>
-        <div class="step active">
+        <div class="step">
             <div class="step-number">3</div>
             <span>Review Selection</span>
         </div>
@@ -117,160 +128,124 @@
     </div>
 
     <div class="progress mb-4">
-        <div class="progress-bar bg-success" style="width: 75%"></div>
+        <div class="progress-bar bg-success" style="width: 50%"></div>
     </div>
 
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card summary-card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h3 class="mb-0">Course Selection Summary</h3>
+    <!-- Compulsory Courses by Semester -->
+    <div th:each="entry : ${compulsoryCoursesBySemester}" class="semester-card">
+        <div class="semester-header">
+            <h4>Semester <span th:text="${entry.key}">1</span> - Compulsory Courses</h4>
+        </div>
+        <div class="card-body">
+            <div th:each="course : ${entry.value}" class="course-item compulsory-course">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <strong th:text="${course.code}">CS101</strong> - <span th:text="${course.name}">Course Name</span>
+                    </div>
+                    <span class="badge bg-primary">Required</span>
                 </div>
-                <div class="card-body">
-                    <div class="row mb-4">
-                        <div class="col-md-8">
-                            <h4 class="text-primary" th:text="${subject.name}">Subject Name</h4>
-                            <p class="text-muted">Your selected study program</p>
-                        </div>
-                        <div class="col-md-4 text-end">
-                            <a href="/selector" class="btn btn-outline-primary btn-sm">Change Subject</a>
-                        </div>
-                    </div>
+            </div>
+        </div>
+    </div>
 
-                    <!-- Course Count Summary -->
-                    <div class="row text-center mb-4">
-                        <div class="col-md-4">
-                            <div class="course-count" th:text="${compulsoryCourses.size()}">8</div>
-                            <p class="text-muted">Compulsory Courses</p>
+    <!-- Optional Course Groups by Semester -->
+    <div th:each="entry : ${optionalGroupsBySemester}" class="semester-card">
+        <div class="semester-header">
+            <h4>Semester <span th:text="${entry.key}">3</span> - Optional Course Groups</h4>
+        </div>
+        <div class="card-body">
+            <div th:each="group : ${entry.value}" class="mb-3">
+                <h6 class="text-success mb-3">Choose one course from this group:</h6>
+                <div th:each="course : ${group.coursesToChoose}" class="course-item optional-course">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong th:text="${course.code}">OPT101</strong> - <span th:text="${course.name}">Optional Course</span>
                         </div>
-                        <div class="col-md-4">
-                            <div class="course-count" th:text="${selectedOptionalCoursesByGroup.size()}">3</div>
-                            <p class="text-muted">Optional Course Groups</p>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="course-count" th:if="${selection.selectedAbroadSemester != null}">1</div>
-                            <div class="course-count" th:if="${selection.selectedAbroadSemester == null}">0</div>
-                            <p class="text-muted">Abroad Semester</p>
-                        </div>
+                        <form method="post" th:action="@{/selector/optional-course}" style="margin: 0;">
+                            <input type="hidden" name="courseId" th:value="${course.id}">
+                            <button type="submit" class="selection-button"
+                                    th:classappend="${#lists.contains(selection.selectedOptionalCourses, course)} ? 'selected' : ''">
+                                <span th:if="${#lists.contains(selection.selectedOptionalCourses, course)}">Selected</span>
+                                <span th:unless="${#lists.contains(selection.selectedOptionalCourses, course)}">Select</span>
+                            </button>
+                        </form>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-                    <!-- Compulsory Courses -->
-                    <div class="mb-4">
-                        <h5 class="text-primary mb-3">Compulsory Courses</h5>
-                        <div th:each="course : ${compulsoryCourses}" class="course-item compulsory-course">
+    <!-- Abroad Semesters by Semester -->
+    <div th:each="entry : ${abroadSemestersBySemester}" class="semester-card">
+        <div class="semester-header">
+            <h4>Semester <span th:text="${entry.key}">4</span> - Study Abroad Options</h4>
+        </div>
+        <div class="card-body">
+            <p class="text-danger mb-3"><strong>Choose one abroad semester option (optional):</strong></p>
+            <div th:each="abroad : ${entry.value}" class="mb-4 p-3 border rounded">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div>
+                        <h5 th:text="${abroad.university.name}">University Name</h5>
+                        <p class="text-muted mb-0" th:text="${abroad.university.country}">Country</p>
+                    </div>
+                    <form method="post" th:action="@{/selector/abroad-semester}" style="margin: 0;">
+                        <input type="hidden" name="abroadSemesterId" th:value="${abroad.id}">
+                        <button type="submit" class="selection-button"
+                                th:classappend="${selection.selectedAbroadSemester != null && selection.selectedAbroadSemester.id == abroad.id} ? 'selected' : ''">
+                            <span th:if="${selection.selectedAbroadSemester != null && selection.selectedAbroadSemester.id == abroad.id}">Selected</span>
+                            <span th:unless="${selection.selectedAbroadSemester != null && selection.selectedAbroadSemester.id == abroad.id}">Select</span>
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Abroad Compulsory Courses -->
+                <div th:if="${!#lists.isEmpty(abroad.getCompulsoryCourses())}" class="mb-3">
+                    <h6 class="text-primary">Required courses at this university:</h6>
+                    <div th:each="course : ${abroad.getCompulsoryCourses()}" class="course-item abroad-course">
+                        <strong th:text="${course.code}">ABR101</strong> - <span th:text="${course.name}">Abroad Course</span>
+                    </div>
+                </div>
+
+                <!-- Abroad Optional Course Groups -->
+                <div th:if="${!#lists.isEmpty(abroad.optionalCourseGroups)}" class="mb-3">
+                    <h6 class="text-success">Optional courses at this university:</h6>
+                    <div th:each="group : ${abroad.optionalCourseGroups}" class="mb-2">
+                        <p class="small text-muted">Choose one from this group:</p>
+                        <div th:each="course : ${group.coursesToChoose}" class="course-item optional-course">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div>
-                                    <strong th:text="${course.code}">CS101</strong> -
-                                    <span th:text="${course.name}">Course Name</span>
+                                    <strong th:text="${course.code}">ABR-OPT101</strong> - <span th:text="${course.name}">Abroad Optional Course</span>
                                 </div>
-                                <span class="badge bg-primary">Semester <span th:text="${course.semester}">1</span></span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Selected Optional Courses -->
-                    <div th:if="${!selectedOptionalCoursesByGroup.isEmpty()}" class="mb-4">
-                        <h5 class="text-success mb-3">Selected Optional Courses</h5>
-                        <div th:each="entry : ${selectedOptionalCoursesByGroup}" class="mb-3">
-                            <h6 class="text-muted">Optional Group - Semester <span th:text="${entry.key.semester}">3</span></h6>
-                            <div th:each="course : ${entry.value}" class="course-item optional-course">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong th:text="${course.code}">OPT101</strong> -
-                                        <span th:text="${course.name}">Optional Course</span>
-                                    </div>
-                                    <span class="badge bg-success">Selected</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Abroad Semester -->
-                    <div th:if="${selection.selectedAbroadSemester != null}" class="mb-4">
-                        <h5 class="text-danger mb-3">Study Abroad Program</h5>
-                        <div class="card border-danger">
-                            <div class="card-header bg-danger text-white">
-                                <h6 class="mb-0">
-                                    <span th:text="${selection.selectedAbroadSemester.university.name}">University Name</span>
-                                    - <span th:text="${selection.selectedAbroadSemester.university.country}">Country</span>
-                                </h6>
-                                <small>Semester <span th:text="${selection.selectedAbroadSemester.semester}">4</span></small>
-                            </div>
-                            <div class="card-body">
-                                <!-- Abroad Compulsory Courses -->
-                                <div th:if="${!#lists.isEmpty(selection.selectedAbroadSemester.getCompulsoryCourses())}" class="mb-3">
-                                    <h6>Required Abroad Courses:</h6>
-                                    <div th:each="course : ${selection.selectedAbroadSemester.getCompulsoryCourses()}"
-                                         class="course-item abroad-course">
-                                        <strong th:text="${course.code}">ABR101</strong> -
-                                        <span th:text="${course.name}">Abroad Course</span>
-                                    </div>
-                                </div>
-
-                                <!-- Abroad Optional Courses -->
-                                <div th:if="${!#lists.isEmpty(selectedAbroadOptionalCourses)}" class="mb-3">
-                                    <h6>Selected Abroad Optional Courses:</h6>
-                                    <div th:each="course : ${selectedAbroadOptionalCourses}"
-                                         class="course-item optional-course">
-                                        <strong th:text="${course.code}">ABR-OPT101</strong> -
-                                        <span th:text="${course.name}">Abroad Optional Course</span>
-                                    </div>
-                                </div>
+                                <form method="post" th:action="@{/selector/abroad-optional-course}" style="margin: 0;">
+                                    <input type="hidden" name="courseId" th:value="${course.id}">
+                                    <button type="submit" class="selection-button btn-sm"
+                                            th:classappend="${#lists.contains(selection.selectedOptionalCourses, course)} ? 'selected' : ''">
+                                        <span th:if="${#lists.contains(selection.selectedOptionalCourses, course)}">Selected</span>
+                                        <span th:unless="${#lists.contains(selection.selectedOptionalCourses, course)}">Select</span>
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-lg-4">
-            <div class="edit-links">
-                <div class="card summary-card mb-4">
-                    <div class="card-header bg-secondary text-white">
-                        <h5 class="mb-0">Need to Make Changes?</h5>
-                    </div>
-                    <div class="card-body">
-                        <a href="/selector" class="btn btn-outline-primary btn-sm w-100 mb-2">Change Subject</a>
-                        <a href="/selector/courses" class="btn btn-outline-success btn-sm w-100 mb-2">Modify Course Selection</a>
-                        <hr>
-                        <p class="small text-muted">Once you confirm below, your selection will be saved and cannot be changed.</p>
-                    </div>
-                </div>
+            <!-- Clear abroad selection option -->
+            <div th:if="${selection.selectedAbroadSemester != null}" class="text-center mt-3">
+                <form method="post" th:action="@{/selector/clear-abroad}">
+                    <button type="submit" class="btn btn-outline-secondary btn-sm">Clear Abroad Selection</button>
+                </form>
             </div>
         </div>
     </div>
 
-    <div class="confirmation-section">
-        <h3 class="mb-4">Confirm Your Selection</h3>
-        <p class="mb-4">Please review all your choices above. Once confirmed, your course selection will be finalized and saved.</p>
-
-        <div class="form-check d-inline-block mb-4">
-            <input class="form-check-input" type="checkbox" id="confirmationCheck" required>
-            <label class="form-check-label text-white" for="confirmationCheck">
-                I confirm that all my course selections are correct and want to finalize my enrollment.
-            </label>
-        </div>
-
-        <div>
-            <form method="post" th:action="@{/selector/finalize}" id="finalizeForm">
-                <button type="submit" class="btn btn-light btn-lg px-5" id="finalizeBtn" disabled>
-                    Finalize Selection
-                </button>
-            </form>
-        </div>
+    <!-- Navigation -->
+    <div class="d-flex justify-content-between mt-4">
+        <a href="/selector" class="btn btn-outline-secondary btn-lg">← Change Subject</a>
+        <a href="/selector/review" class="btn btn-success btn-lg">Review Selection →</a>
     </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const confirmationCheck = document.getElementById('confirmationCheck');
-        const finalizeBtn = document.getElementById('finalizeBtn');
-
-        confirmationCheck.addEventListener('change', function() {
-            finalizeBtn.disabled = !this.checked;
-        });
-    });
-</script>
 </body>
 </html>

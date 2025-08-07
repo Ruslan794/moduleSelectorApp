@@ -137,6 +137,16 @@ class StudentSelectionService(
         return null
     }
 
+    @Transactional
+    fun clearAbroadSemester(): StudentSelection? {
+        val selection = getFromSession() ?: return null
+
+        selection.selectedAbroadSemester = null
+        selection.selectedOptionalCourses.removeIf { it.abroadSemester != null }
+        saveToSession(selection)
+        return selection
+    }
+
     @Transactional(readOnly = true)
     fun getAllCompletedSelections(): List<StudentSelection> {
         return studentSelectionRepository.findByIsCompletedTrue()

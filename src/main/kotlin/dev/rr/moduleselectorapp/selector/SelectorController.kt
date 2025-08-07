@@ -86,6 +86,12 @@ class SelectorController(
         return "course-selection"
     }
 
+    @PostMapping("/clear-abroad")
+    fun clearAbroadSemester(redirectAttributes: RedirectAttributes): String {
+        studentSelectionService.clearAbroadSemester()
+        return "redirect:/selector/courses"
+    }
+
     @PostMapping("/optional-course")
     fun selectOptionalCourse(
         @RequestParam courseId: UUID,
