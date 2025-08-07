@@ -40,6 +40,14 @@ class StudentSelectionService(
             }
             saveToSession(selection)
         }
+
+        if (selection.selectedSubject != null && selection.selectedAbroadSemester == null) {
+            val abroadOptions = selection.selectedSubject!!.abroadSemestersToChoose
+            if (abroadOptions.size == 1) {
+                selectAbroadSemester(abroadOptions[0].id!!)
+            }
+        }
+
         return selection
     }
 
@@ -97,8 +105,9 @@ class StudentSelectionService(
 
         if (abroadSemester != null) {
             selection.selectedAbroadSemester = abroadSemester
-            selection.selectedOptionalCourses.removeIf {
-                it.abroadSemester != null
+            selection.selectedOptionalCourses.removeIf { course ->
+                course.abroadSemester != null ||
+                        (course.optionalGroup != null && course.abroadSemester == null)
             }
             saveToSession(selection)
         }

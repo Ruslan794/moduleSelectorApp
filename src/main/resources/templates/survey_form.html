@@ -64,6 +64,7 @@
             <div class="mb-3">
                 <label for="birthDate" class="form-label">Date of Birth *</label>
                 <input type="date" class="form-control" th:field="*{birthDate}" id="birthDate"
+                       th:value="${surveyData.birthDate != null ? #temporals.format(surveyData.birthDate, 'yyyy-MM-dd') : ''}"
                        th:classappend="${#fields.hasErrors('birthDate')} ? 'is-invalid' : ''">
                 <div class="error" th:if="${#fields.hasErrors('birthDate')}" th:errors="*{birthDate}"></div>
             </div>

@@ -124,8 +124,41 @@ class SelectorController(
         }
 
         val subject = subjectService.getSubjectById(selection.selectedSubject!!.id!!)!!
-        val compulsoryCourses = subject.getCompulsoryCourses()
+        val validationErrors = mutableListOf<String>()
 
+        // Check regular optional groups (not abroad)
+        subject.optionalCourseGroups.forEach { group ->
+            val selectedFromGroup = selection.selectedOptionalCourses.any { course ->
+                course.optionalGroup?.id == group.id && course.abroadSemester == null
+            }
+            if (!selectedFromGroup) {
+                validationErrors.add("Please select a course from the optional group in semester ${group.semester}")
+            }
+        }
+
+        // Check abroad semester selection
+        if (subject.abroadSemestersToChoose.isNotEmpty() && selection.selectedAbroadSemester == null) {
+            validationErrors.add("Please select an abroad semester option")
+        }
+
+        // Check abroad optional groups only if abroad semester is selected
+        selection.selectedAbroadSemester?.let { abroadSemester ->
+            abroadSemester.optionalCourseGroups.forEach { group ->
+                val selectedFromGroup = selection.selectedOptionalCourses.any { course ->
+                    course.optionalGroup?.id == group.id && course.abroadSemester?.id == abroadSemester.id
+                }
+                if (!selectedFromGroup) {
+                    validationErrors.add("Please select a course from the abroad optional group at ${abroadSemester.university.name}")
+                }
+            }
+        }
+
+        if (validationErrors.isNotEmpty()) {
+            redirectAttributes.addFlashAttribute("validationErrors", validationErrors)
+            return "redirect:/selector/courses"
+        }
+
+        val compulsoryCourses = subject.getCompulsoryCourses()
         val selectedOptionalCoursesByGroup = mutableMapOf<String, List<Course>>()
         val selectedAbroadOptionalCourses = mutableListOf<Course>()
 
