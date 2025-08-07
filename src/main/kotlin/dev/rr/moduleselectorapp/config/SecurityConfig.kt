@@ -44,8 +44,7 @@ class SecurityConfig {
 
         val admin = User.builder()
             .username("admin")
-            .password(passwordEncoder().encode("" +
-                    ""))
+            .password(passwordEncoder().encode("admin123"))
             .roles("ADMIN")
             .build()
 
@@ -54,7 +53,6 @@ class SecurityConfig {
             .password(passwordEncoder().encode("aboba-sec"))
             .roles("ADMIN")
             .build()
-
 
         userDetailsManager.createUser(admin)
         userDetailsManager.createUser(aboba)

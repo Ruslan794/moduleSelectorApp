@@ -8,10 +8,11 @@ import java.util.UUID
 
 @Repository
 interface SubjectRepository : JpaRepository<Subject, UUID>{
+
     @Query("SELECT DISTINCT s FROM Subject s " +
-            "LEFT JOIN FETCH s.compulsoryCourses " +
+            "LEFT JOIN FETCH s.courses " +
             "ORDER BY s.name")
-    fun findAllWithCompulsoryCourses(): List<Subject>
+    fun findAllWithCourses(): List<Subject>
 
     fun findByName(name: String): Subject?
 }

@@ -1,9 +1,7 @@
 package dev.rr.moduleselectorapp.subject.model
 
 import dev.rr.moduleselectorapp.common.BaseEntity
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.Table
+import jakarta.persistence.*
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
 
@@ -21,7 +19,22 @@ class Course : BaseEntity() {
     @Column(name = "semester_number")
     var semester: Int = 1
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "subject_id")
+    var subject: Subject? = null
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "optional_group_id")
+    var optionalGroup: OptionalCourseGroup? = null
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "abroad_semester_id")
+    var abroadSemester: AbroadSemester? = null
+
+    @Column(name = "is_compulsory")
+    var isCompulsory: Boolean = false
+
     override fun toString(): String {
-        return "Course(id=$id, name='$name', code='$code', semester=$semester"
+        return "Course(id=$id, name='$name', code='$code', semester=$semester, isCompulsory=$isCompulsory)"
     }
 }

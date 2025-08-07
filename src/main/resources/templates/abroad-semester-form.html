@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Abroad Semester</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        .course-item {
+            padding: 8px 15px;
+            border-left: 3px solid #dc3545;
+            margin-bottom: 5px;
+        }
+        .compulsory-courses {
+            border-left-color: #0d6efd;
+            background-color: #f0f7ff;
+        }
+        .optional-group {
+            border-left-color: #198754;
+            background-color: #f0fff7;
+        }
+    </style>
+</head>
+<body>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Edit Abroad Semester</h1>
+        <a th:href="@{/secured/subjects/{id}(id=${param.subjectId})}" class="btn btn-outline-secondary">
+            Back to Subject
+        </a>
+    </div>
+
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="card-title mb-0">Abroad Semester Details</h3>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">University</label>
+                        <input type="text" class="form-control" th:value="${abroadSemester.university.name + ' (' + abroadSemester.university.country + ')'}" readonly>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Semester</label>
+                        <input type="text" class="form-control" th:value="${abroadSemester.semester}" readonly>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">Add Course</h3>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/secured/abroad-semesters/{abroadId}/add-course(abroadId=${abroadSemester.id})}" method="post">
+                        <div class="mb-3">
+                            <label for="courseName" class="form-label">Course Name</label>
+                            <input type="text" class="form-control" id="courseName" name="name" placeholder="Course Name" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="courseCode" class="form-label">Course Code</label>
+                            <input type="text" class="form-control" id="courseCode" name="code" placeholder="e.g., CS-BCN-101" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="courseSemester" class="form-label">Semester</label>
+                            <select class="form-select" id="courseSemester" name="semester" required>
+                                <option th:each="sem : ${#numbers.sequence(1, 8)}"
+                                        th:value="${sem}"
+                                        th:text="${sem}"
+                                        th:selected="${sem == abroadSemester.semester}">1</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="isCompulsory" name="isCompulsory" value="true">
+                                <label class="form-check-label" for="isCompulsory">
+                                    Compulsory Course
+                                </label>
+                            </div>
+                        </div>
+
+                        <input type="hidden" name="subjectId" th:value="${param.subjectId}">
+
+                        <button type="submit" class="btn btn-primary">Add Course</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h3 class="card-title mb-0">Add Optional Group</h3>
+                </div>
+                <div class="card-body">
+                    <form th:action="@{/secured/abroad-semesters/{abroadId}/add-optional-group(abroadId=${abroadSemester.id})}" method="post">
+                        <div class="mb-3">
+                            <label for="groupSemester" class="form-label">Semester</label>
+                            <select class="form-select" id="groupSemester" name="semester" required>
+                                <option th:each="sem : ${#numbers.sequence(1, 8)}"
+                                        th:value="${sem}"
+                                        th:text="${sem}"
+                                        th:selected="${sem == abroadSemester.semester}">1</option>
+                            </select>
+                        </div>
+
+                        <input type="hidden" name="subjectId" th:value="${param.subjectId}">
+
+                        <button type="submit" class="btn btn-success">Add Optional Group</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="card-title mb-0">Compulsory Courses</h3>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <div class="list-group-item d-flex justify-content-between align-items-center course-item compulsory-courses"
+                             th:each="course : ${abroadSemester.getCompulsoryCourses()}">
+                            <div>
+                                <strong th:text="${course.code} + ' - ' + ${course.name}">CS-BCN-101 - Course Name</strong>
+                                <span class="badge bg-secondary" th:text="'Semester ' + ${course.semester}">Semester 4</span>
+                            </div>
+                            <div>
+                                <a th:href="@{/secured/abroad-semesters/{abroadId}/remove-course/{courseId}(abroadId=${abroadSemester.id},courseId=${course.id},subjectId=${param.subjectId})}"
+                                   class="btn btn-sm btn-outline-danger"
+                                   onclick="return confirm('Remove this course?')">
+                                    Remove
+                                </a>
+                            </div>
+                        </div>
+                        <div class="list-group-item text-muted" th:if="${#lists.isEmpty(abroadSemester.getCompulsoryCourses())}">
+                            No compulsory courses defined.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h3 class="card-title mb-0">Optional Course Groups</h3>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        <div class="list-group-item course-item optional-group"
+                             th:each="group : ${abroadSemester.optionalCourseGroups}">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div>
+                                    <strong>Optional Group</strong>
+                                    <span class="badge bg-secondary ms-2" th:text="${group.coursesToChoose.size} + ' courses'">3 courses</span>
+                                </div>
+                                <div>
+                                    <a th:href="@{/secured/optional-groups/edit/{id}(id=${group.id},subjectId=${param.subjectId})}"
+                                       class="btn btn-sm btn-outline-secondary me-1">Edit</a>
+                                    <a th:href="@{/secured/abroad-semesters/{abroadId}/remove-optional-group/{groupId}(abroadId=${abroadSemester.id},groupId=${group.id},subjectId=${param.subjectId})}"
+                                       class="btn btn-sm btn-outline-danger"
+                                       onclick="return confirm('Remove this group?')">Remove</a>
+                                </div>
+                            </div>
+                            <div class="small">
+                                <div th:each="course, stat : ${group.coursesToChoose}">
+                                    <span th:text="${course.code} + ' - ' + ${course.name}">CODE123 - Course Name</span>
+                                    <span th:if="${!stat.last}"> • </span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="list-group-item text-muted" th:if="${#lists.isEmpty(abroadSemester.optionalCourseGroups)}">
+                            No optional course groups defined.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

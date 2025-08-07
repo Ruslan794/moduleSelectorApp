@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title th:text="${course.id == null ? 'Add New Course' : 'Edit Course: ' + course.name}">Course Form</title>
-    <!-- Bootstrap CSS -->
+    <title th:text="'Edit Course: ' + ${course.name}">Course Form</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 th:text="${course.id == null ? 'Add New Course' : 'Edit Course: ' + course.code + ' - ' + course.name}">Course Form</h1>
+        <h1 th:text="'Edit Course: ' + ${course.code} + ' - ' + ${course.name}">Course Form</h1>
         <a th:href="@{/secured/subjects/{id}(id=${subjectId})}" class="btn btn-outline-secondary">
             Back to Subject
         </a>
@@ -18,7 +17,7 @@
 
     <div class="card">
         <div class="card-body">
-            <form th:action="${course.id == null ? '/secured/courses/add' : '/secured/courses/update/' + course.id}"
+            <form th:action="@{/secured/courses/update/{id}(id=${course.id})}"
                   th:object="${course}" method="post">
 
                 <div class="mb-3">
@@ -48,15 +47,12 @@
 
                 <input type="hidden" name="subjectId" th:value="${subjectId}">
 
-                <button type="submit" class="btn btn-primary">
-                    <span th:text="${course.id == null ? 'Create Course' : 'Update Course'}">Save</span>
-                </button>
+                <button type="submit" class="btn btn-primary">Update Course</button>
             </form>
         </div>
     </div>
 </div>
 
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

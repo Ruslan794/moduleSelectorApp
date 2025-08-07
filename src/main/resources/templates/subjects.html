@@ -4,7 +4,6 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Manage Subjects</title>
-  <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     .subject-card {
@@ -36,7 +35,6 @@
     <p>Click on a subject to view and edit its details, including courses, optional groups, and abroad semesters.</p>
   </div>
 
-  <!-- Subject listing -->
   <div class="row">
     <div class="col-md-6" th:each="subject : ${subjects}">
       <div class="card subject-card">
@@ -44,7 +42,7 @@
           <div>
             <h4 th:text="${subject.name}">Subject Name</h4>
             <div class="small text-muted">
-              <span th:text="${subject.compulsoryCourses.size} + ' compulsory courses'">5 compulsory courses</span> •
+              <span th:text="${subject.getCompulsoryCourses().size} + ' compulsory courses'">5 compulsory courses</span> •
               <span th:text="${subject.optionalCourseGroups.size} + ' optional groups'">2 optional groups</span> •
               <span th:text="${subject.abroadSemestersToChoose.size} + ' abroad options'">3 abroad options</span>
             </div>
@@ -64,7 +62,6 @@
   </div>
 </div>
 
-<!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

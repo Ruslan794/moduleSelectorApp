@@ -33,15 +33,7 @@ class AdminController(
         model.addAttribute("subjects", subjects)
         model.addAttribute("totalSubjects", subjects.size)
 
-        // Calculate total courses across all subjects for display
-        val totalCourses = subjects.sumOf { subject ->
-            subject.compulsoryCourses.size +
-                    subject.optionalCourseGroups.sumOf { it.coursesToChoose.size } +
-                    subject.abroadSemestersToChoose.sumOf { abroad ->
-                        abroad.compulsoryCourses.size +
-                                abroad.optionalCourseGroups.sumOf { it.coursesToChoose.size }
-                    }
-        }
+        val totalCourses = subjects.sumOf { it.courses.size }
         model.addAttribute("totalCourses", totalCourses)
 
         return "subjects"
@@ -51,31 +43,23 @@ class AdminController(
     fun showSubjectDetail(@PathVariable id: UUID, model: Model): String {
         val subject = subjectService.getSubjectById(id)
         if (subject != null) {
-            // Add the subject to the model
             model.addAttribute("subject", subject)
 
-            // Group compulsory courses by semester
-            val compulsoryCoursesBySemester = subject.compulsoryCourses
+            val compulsoryCoursesBySemester = subject.getCompulsoryCourses()
                 .groupBy { it.semester }
                 .toSortedMap()
             model.addAttribute("compulsoryCoursesBySemester", compulsoryCoursesBySemester)
 
-            // Group optional course groups by semester
             val optionalGroupsBySemester = subject.optionalCourseGroups
                 .groupBy { it.semester }
                 .toSortedMap()
             model.addAttribute("optionalGroupsBySemester", optionalGroupsBySemester)
 
-            // Group abroad semesters by semester
             val abroadSemestersBySemester = subject.abroadSemestersToChoose
                 .groupBy { it.semester }
                 .toSortedMap()
             model.addAttribute("abroadSemestersBySemester", abroadSemestersBySemester)
 
-            // Add all available courses for the dropdown
-            model.addAttribute("allCourses", courseService.getAllCourses())
-
-            // Add all universities for the dropdown
             model.addAttribute("universities", universityService.getAllUniversities())
 
             return "subject-detail"
@@ -87,8 +71,6 @@ class AdminController(
     fun showStudentData(): String {
         return "data"
     }
-
-    // Subject CRUD operations
 
     @GetMapping("/subjects/add")
     fun showAddSubjectForm(model: Model): String {
@@ -131,42 +113,27 @@ class AdminController(
         return "redirect:/secured/subjects"
     }
 
-    // Course operations
-
     @PostMapping("/subjects/{id}/courses/add")
     fun addCourseToSubject(
         @PathVariable id: UUID,
-        @RequestParam(required = false) courseId: UUID?,
-        @RequestParam(required = false) name: String?,
-        @RequestParam(required = false) code: String?,
-        @RequestParam(required = false) semester: Int?,
-        @RequestParam isNewCourse: Boolean,
+        @RequestParam name: String,
+        @RequestParam code: String,
+        @RequestParam semester: Int,
         redirectAttributes: RedirectAttributes
     ): String {
         val subject = subjectService.getSubjectById(id) ?: return "redirect:/secured/subjects"
 
-        val course = if (isNewCourse && name != null && code != null && semester != null) {
-            // Create new course
-            val newCourse = Course().apply {
-                this.name = name
-                this.code = code
-                this.semester = semester
-            }
-            courseService.saveCourse(newCourse)
-        } else if (!isNewCourse && courseId != null) {
-            // Use existing course
-            courseService.getCourseById(courseId)
-        } else {
-            null
+        val newCourse = Course().apply {
+            this.name = name
+            this.code = code
+            this.semester = semester
+            this.subject = subject
+            this.isCompulsory = true
         }
 
-        if (course != null) {
-            subject.compulsoryCourses.add(course)
-            subjectService.saveSubject(subject)
-            redirectAttributes.addFlashAttribute("success", "Course '${course.name}' added successfully")
-        } else {
-            redirectAttributes.addFlashAttribute("error", "Failed to add course")
-        }
+        subject.courses.add(newCourse)
+        subjectService.saveSubject(subject)
+        redirectAttributes.addFlashAttribute("success", "Course '${newCourse.name}' added successfully")
 
         return "redirect:/secured/subjects/${id}"
     }
@@ -211,7 +178,7 @@ class AdminController(
         val course = courseService.getCourseById(courseId)
 
         if (subject != null && course != null) {
-            subject.compulsoryCourses.removeIf { it.id == courseId }
+            subject.courses.removeIf { it.id == courseId }
             subjectService.saveSubject(subject)
             redirectAttributes.addFlashAttribute("success", "Course '${course.name}' removed from ${subject.name}")
         }
@@ -219,25 +186,21 @@ class AdminController(
         return "redirect:/secured/subjects/${subjectId}"
     }
 
-    // Optional Course Group operations
-
     @PostMapping("/subjects/{id}/optional-groups/add")
     fun addOptionalGroupToSubject(
         @PathVariable id: UUID,
-        @RequestParam name: String,
         @RequestParam semester: Int,
         redirectAttributes: RedirectAttributes
     ): String {
         val subject = subjectService.getSubjectById(id) ?: return "redirect:/secured/subjects"
 
         val group = OptionalCourseGroup().apply {
-            this.name = name
             this.semester = semester
         }
 
         subject.optionalCourseGroups.add(group)
         subjectService.saveSubject(subject)
-        redirectAttributes.addFlashAttribute("success", "Optional course group '$name' added successfully")
+        redirectAttributes.addFlashAttribute("success", "Optional course group added successfully")
 
         return "redirect:/secured/subjects/${id}"
     }
@@ -247,7 +210,6 @@ class AdminController(
         val group = optionalGroupService.getOptionalGroupById(id)
         if (group != null) {
             model.addAttribute("group", group)
-            model.addAttribute("allCourses", courseService.getAllCourses())
             model.addAttribute("subjectId", subjectId)
             return "optional-group-form"
         }
@@ -257,19 +219,26 @@ class AdminController(
     @PostMapping("/optional-groups/{groupId}/add-course")
     fun addCourseToOptionalGroup(
         @PathVariable groupId: UUID,
-        @RequestParam courseId: UUID,
+        @RequestParam name: String,
+        @RequestParam code: String,
+        @RequestParam semester: Int,
         @RequestParam subjectId: UUID,
         redirectAttributes: RedirectAttributes
     ): String {
         val group = optionalGroupService.getOptionalGroupById(groupId)
-        val course = courseService.getCourseById(courseId)
 
-        if (group != null && course != null) {
-            if (!group.coursesToChoose.contains(course)) {
-                group.coursesToChoose.add(course)
-                optionalGroupService.saveOptionalGroup(group)
-                redirectAttributes.addFlashAttribute("success", "Course '${course.name}' added to group")
+        if (group != null) {
+            val newCourse = Course().apply {
+                this.name = name
+                this.code = code
+                this.semester = semester
+                this.optionalGroup = group
+                this.isCompulsory = false
             }
+
+            group.coursesToChoose.add(newCourse)
+            optionalGroupService.saveOptionalGroup(group)
+            redirectAttributes.addFlashAttribute("success", "Course '${newCourse.name}' added to group")
         }
 
         return "redirect:/secured/optional-groups/edit/${groupId}?subjectId=${subjectId}"
@@ -310,8 +279,6 @@ class AdminController(
         return "redirect:/secured/subjects/${subjectId}"
     }
 
-    // Abroad Semester operations
-
     @PostMapping("/subjects/{id}/abroad-semesters/add")
     fun addAbroadSemesterToSubject(
         @PathVariable id: UUID,
@@ -326,7 +293,6 @@ class AdminController(
         val subject = subjectService.getSubjectById(id) ?: return "redirect:/secured/subjects"
 
         val university = if (isNewUniversity && universityName != null && universityShortName != null && universityCountry != null) {
-            // Create new university
             val newUniversity = University().apply {
                 this.name = universityName
                 this.shortName = universityShortName
@@ -334,7 +300,6 @@ class AdminController(
             }
             universityService.saveUniversity(newUniversity)
         } else if (!isNewUniversity && universityId != null) {
-            // Use existing university
             universityService.getUniversityById(universityId)
         } else {
             null
@@ -361,7 +326,6 @@ class AdminController(
         val abroadSemester = abroadSemesterService.getAbroadSemesterById(id)
         if (abroadSemester != null) {
             model.addAttribute("abroadSemester", abroadSemester)
-            model.addAttribute("allCourses", courseService.getAllCourses())
             model.addAttribute("universities", universityService.getAllUniversities())
             model.addAttribute("subjectId", subjectId)
             return "abroad-semester-form"
@@ -369,29 +333,37 @@ class AdminController(
         return "redirect:/secured/subjects/${subjectId}"
     }
 
-    @PostMapping("/abroad-semesters/{abroadId}/add-compulsory-course")
-    fun addCompulsoryCourseToAbroadSemester(
+    @PostMapping("/abroad-semesters/{abroadId}/add-course")
+    fun addCourseToAbroadSemester(
         @PathVariable abroadId: UUID,
-        @RequestParam courseId: UUID,
+        @RequestParam name: String,
+        @RequestParam code: String,
+        @RequestParam semester: Int,
+        @RequestParam isCompulsory: Boolean,
         @RequestParam subjectId: UUID,
         redirectAttributes: RedirectAttributes
     ): String {
         val abroadSemester = abroadSemesterService.getAbroadSemesterById(abroadId)
-        val course = courseService.getCourseById(courseId)
 
-        if (abroadSemester != null && course != null) {
-            if (!abroadSemester.compulsoryCourses.contains(course)) {
-                abroadSemester.compulsoryCourses.add(course)
-                abroadSemesterService.saveAbroadSemester(abroadSemester)
-                redirectAttributes.addFlashAttribute("success", "Course '${course.name}' added to abroad semester")
+        if (abroadSemester != null) {
+            val newCourse = Course().apply {
+                this.name = name
+                this.code = code
+                this.semester = semester
+                this.abroadSemester = abroadSemester
+                this.isCompulsory = isCompulsory
             }
+
+            abroadSemester.courses.add(newCourse)
+            abroadSemesterService.saveAbroadSemester(abroadSemester)
+            redirectAttributes.addFlashAttribute("success", "Course '${newCourse.name}' added to abroad semester")
         }
 
         return "redirect:/secured/abroad-semesters/edit/${abroadId}?subjectId=${subjectId}"
     }
 
-    @GetMapping("/abroad-semesters/{abroadId}/remove-compulsory-course/{courseId}")
-    fun removeCompulsoryCourseFromAbroadSemester(
+    @GetMapping("/abroad-semesters/{abroadId}/remove-course/{courseId}")
+    fun removeCourseFromAbroadSemester(
         @PathVariable abroadId: UUID,
         @PathVariable courseId: UUID,
         @RequestParam subjectId: UUID,
@@ -400,7 +372,7 @@ class AdminController(
         val abroadSemester = abroadSemesterService.getAbroadSemesterById(abroadId)
 
         if (abroadSemester != null) {
-            abroadSemester.compulsoryCourses.removeIf { it.id == courseId }
+            abroadSemester.courses.removeIf { it.id == courseId }
             abroadSemesterService.saveAbroadSemester(abroadSemester)
             redirectAttributes.addFlashAttribute("success", "Course removed from abroad semester")
         }
@@ -411,7 +383,7 @@ class AdminController(
     @PostMapping("/abroad-semesters/{abroadId}/add-optional-group")
     fun addOptionalGroupToAbroadSemester(
         @PathVariable abroadId: UUID,
-        @RequestParam name: String,
+        @RequestParam semester: Int,
         @RequestParam subjectId: UUID,
         redirectAttributes: RedirectAttributes
     ): String {
@@ -419,13 +391,12 @@ class AdminController(
 
         if (abroadSemester != null) {
             val group = OptionalCourseGroup().apply {
-                this.name = name
-                this.semester = abroadSemester.semester
+                this.semester = semester
             }
 
             abroadSemester.optionalCourseGroups.add(group)
             abroadSemesterService.saveAbroadSemester(abroadSemester)
-            redirectAttributes.addFlashAttribute("success", "Optional course group '$name' added to abroad semester")
+            redirectAttributes.addFlashAttribute("success", "Optional course group added to abroad semester")
         }
 
         return "redirect:/secured/abroad-semesters/edit/${abroadId}?subjectId=${subjectId}"
@@ -446,47 +417,6 @@ class AdminController(
         }
 
         return "redirect:/secured/subjects/${subjectId}"
-    }
-
-    @PostMapping("/abroad-semesters/{id}/change-university")
-    fun changeAbroadSemesterUniversity(
-        @PathVariable id: UUID,
-        @RequestParam(required = false) universityId: UUID?,
-        @RequestParam(required = false) universityName: String?,
-        @RequestParam(required = false) universityShortName: String?,
-        @RequestParam(required = false) universityCountry: String?,
-        @RequestParam isNewUniversity: Boolean,
-        @RequestParam subjectId: UUID,
-        redirectAttributes: RedirectAttributes
-    ): String {
-        val abroadSemester = abroadSemesterService.getAbroadSemesterById(id)
-
-        if (abroadSemester != null) {
-            val university = if (isNewUniversity && universityName != null && universityShortName != null && universityCountry != null) {
-                // Create new university
-                val newUniversity = University().apply {
-                    this.name = universityName
-                    this.shortName = universityShortName
-                    this.country = universityCountry
-                }
-                universityService.saveUniversity(newUniversity)
-            } else if (!isNewUniversity && universityId != null) {
-                // Use existing university
-                universityService.getUniversityById(universityId)
-            } else {
-                null
-            }
-
-            if (university != null) {
-                abroadSemester.university = university
-                abroadSemesterService.saveAbroadSemester(abroadSemester)
-                redirectAttributes.addFlashAttribute("success", "University changed successfully")
-            } else {
-                redirectAttributes.addFlashAttribute("error", "Failed to change university")
-            }
-        }
-
-        return "redirect:/secured/abroad-semesters/edit/${id}?subjectId=${subjectId}"
     }
 
     @GetMapping("/abroad-semesters/{abroadId}/remove-optional-group/{groupId}")
