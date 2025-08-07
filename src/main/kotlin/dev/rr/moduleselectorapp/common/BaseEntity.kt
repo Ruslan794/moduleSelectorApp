@@ -26,6 +26,8 @@ abstract class BaseEntity {
     @Version
     var version: Long = 0
 
+    // test Claude
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || this::class != other::class) return false
