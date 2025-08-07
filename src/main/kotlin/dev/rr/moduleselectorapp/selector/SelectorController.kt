@@ -5,6 +5,7 @@ import dev.rr.moduleselectorapp.subject.model.Course
 import dev.rr.moduleselectorapp.subject.service.SubjectService
 import dev.rr.moduleselectorapp.survey.service.SurveyService
 import org.slf4j.LoggerFactory
+import org.springframework.http.ResponseEntity
 import org.springframework.stereotype.Controller
 import org.springframework.ui.Model
 import org.springframework.web.bind.annotation.*
@@ -88,48 +89,30 @@ class SelectorController(
     }
 
     @PostMapping("/optional-course")
+    @ResponseBody
     fun selectOptionalCourse(
         @RequestParam courseId: UUID,
-        @RequestParam(required = false) scrollTo: String?,
-        redirectAttributes: RedirectAttributes
-    ): String {
+        @RequestParam groupId: UUID
+    ): ResponseEntity<String> {
         studentSelectionService.selectOptionalCourse(courseId)
-        val redirectUrl = if (scrollTo != null) {
-            "redirect:/selector/courses?scrollTo=$scrollTo"
-        } else {
-            "redirect:/selector/courses"
-        }
-        return redirectUrl
+        return ResponseEntity.ok("Success")
     }
 
     @PostMapping("/abroad-semester")
-    fun selectAbroadSemester(
-        @RequestParam abroadSemesterId: UUID,
-        @RequestParam(required = false) scrollTo: String?,
-        redirectAttributes: RedirectAttributes
-    ): String {
+    @ResponseBody
+    fun selectAbroadSemester(@RequestParam abroadSemesterId: UUID): ResponseEntity<String> {
         studentSelectionService.selectAbroadSemester(abroadSemesterId)
-        val redirectUrl = if (scrollTo != null) {
-            "redirect:/selector/courses?scrollTo=$scrollTo"
-        } else {
-            "redirect:/selector/courses"
-        }
-        return redirectUrl
+        return ResponseEntity.ok("Success")
     }
 
     @PostMapping("/abroad-optional-course")
+    @ResponseBody
     fun selectAbroadOptionalCourse(
         @RequestParam courseId: UUID,
-        @RequestParam(required = false) scrollTo: String?,
-        redirectAttributes: RedirectAttributes
-    ): String {
+        @RequestParam groupId: UUID
+    ): ResponseEntity<String> {
         studentSelectionService.selectAbroadOptionalCourse(courseId)
-        val redirectUrl = if (scrollTo != null) {
-            "redirect:/selector/courses?scrollTo=$scrollTo"
-        } else {
-            "redirect:/selector/courses"
-        }
-        return redirectUrl
+        return ResponseEntity.ok("Success")
     }
 
     @GetMapping("/review")
@@ -149,7 +132,7 @@ class SelectorController(
         selection.selectedOptionalCourses.forEach { course ->
             when {
                 course.optionalGroup != null && course.abroadSemester == null -> {
-                    val groupKey = "Optional Group - Semester ${course.optionalGroup!!.semester}"
+                    val groupKey = "Optional Group - Semester ${course.semester}"
                     selectedOptionalCoursesByGroup[groupKey] =
                         (selectedOptionalCoursesByGroup[groupKey] ?: emptyList()) + course
                 }

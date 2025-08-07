@@ -82,7 +82,7 @@
             color: #28a745;
             padding: 8px 15px;
             border-radius: 20px;
-            text-decoration: none;
+            cursor: pointer;
             transition: all 0.3s;
         }
         .selection-button:hover {
@@ -161,16 +161,13 @@
                         <div>
                             <strong th:text="${course.code}">OPT101</strong> - <span th:text="${course.name}">Optional Course</span>
                         </div>
-                        <form method="post" th:action="@{/selector/optional-course}" style="margin: 0;">
-                            <input type="hidden" name="courseId" th:value="${course.id}">
-                            <input type="hidden" name="groupId" th:value="${group.id}">
-                            <input type="hidden" name="scrollTo" th:value="'semester-' + ${entry.key}">
-                            <button type="submit" class="selection-button"
-                                    th:classappend="${#lists.contains(selection.selectedOptionalCourses, course)} ? 'selected' : ''">
-                                <span th:if="${#lists.contains(selection.selectedOptionalCourses, course)}">Selected</span>
-                                <span th:unless="${#lists.contains(selection.selectedOptionalCourses, course)}">Select</span>
-                            </button>
-                        </form>
+                        <button type="button" class="selection-button optional-btn"
+                                th:data-course-id="${course.id}"
+                                th:data-group-id="${group.id}"
+                                th:classappend="${#lists.contains(selection.selectedOptionalCourses, course)} ? 'selected' : ''">
+                            <span th:if="${#lists.contains(selection.selectedOptionalCourses, course)}">Selected</span>
+                            <span th:unless="${#lists.contains(selection.selectedOptionalCourses, course)}">Select</span>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -184,22 +181,18 @@
         </div>
         <div class="card-body">
             <p class="text-danger mb-3"><strong>Choose one abroad semester option:</strong></p>
-            <div th:each="abroad : ${entry.value}" class="mb-4 p-3 border rounded"
-                 th:id="'abroad-' + ${abroad.id}">
+            <div th:each="abroad : ${entry.value}" class="mb-4 p-3 border rounded">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div>
                         <h5 th:text="${abroad.university.name}">University Name</h5>
                         <p class="text-muted mb-0" th:text="${abroad.university.country}">Country</p>
                     </div>
-                    <form method="post" th:action="@{/selector/abroad-semester}" style="margin: 0;">
-                        <input type="hidden" name="abroadSemesterId" th:value="${abroad.id}">
-                        <input type="hidden" name="scrollTo" th:value="'abroad-' + ${abroad.id}">
-                        <button type="submit" class="selection-button"
-                                th:classappend="${selection.selectedAbroadSemester != null && selection.selectedAbroadSemester.id == abroad.id} ? 'selected' : ''">
-                            <span th:if="${selection.selectedAbroadSemester != null && selection.selectedAbroadSemester.id == abroad.id}">Selected</span>
-                            <span th:unless="${selection.selectedAbroadSemester != null && selection.selectedAbroadSemester.id == abroad.id}">Select</span>
-                        </button>
-                    </form>
+                    <button type="button" class="selection-button abroad-btn"
+                            th:data-abroad-id="${abroad.id}"
+                            th:classappend="${selection.selectedAbroadSemester != null && selection.selectedAbroadSemester.id == abroad.id} ? 'selected' : ''">
+                        <span th:if="${selection.selectedAbroadSemester != null && selection.selectedAbroadSemester.id == abroad.id}">Selected</span>
+                        <span th:unless="${selection.selectedAbroadSemester != null && selection.selectedAbroadSemester.id == abroad.id}">Select</span>
+                    </button>
                 </div>
 
                 <!-- Abroad Compulsory Courses -->
@@ -220,16 +213,13 @@
                                 <div>
                                     <strong th:text="${course.code}">ABR-OPT101</strong> - <span th:text="${course.name}">Abroad Optional Course</span>
                                 </div>
-                                <form method="post" th:action="@{/selector/abroad-optional-course}" style="margin: 0;">
-                                    <input type="hidden" name="courseId" th:value="${course.id}">
-                                    <input type="hidden" name="groupId" th:value="${group.id}">
-                                    <input type="hidden" name="scrollTo" th:value="'abroad-' + ${abroad.id}">
-                                    <button type="submit" class="selection-button btn-sm"
-                                            th:classappend="${#lists.contains(selection.selectedOptionalCourses, course)} ? 'selected' : ''">
-                                        <span th:if="${#lists.contains(selection.selectedOptionalCourses, course)}">Selected</span>
-                                        <span th:unless="${#lists.contains(selection.selectedOptionalCourses, course)}">Select</span>
-                                    </button>
-                                </form>
+                                <button type="button" class="selection-button btn-sm abroad-optional-btn"
+                                        th:data-course-id="${course.id}"
+                                        th:data-group-id="${group.id}"
+                                        th:classappend="${#lists.contains(selection.selectedOptionalCourses, course)} ? 'selected' : ''">
+                                    <span th:if="${#lists.contains(selection.selectedOptionalCourses, course)}">Selected</span>
+                                    <span th:unless="${#lists.contains(selection.selectedOptionalCourses, course)}">Select</span>
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -248,14 +238,75 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const scrollTo = urlParams.get('scrollTo');
-        if (scrollTo) {
-            const element = document.getElementById(scrollTo);
-            if (element) {
-                element.scrollIntoView({ behavior: 'smooth' });
-            }
-        }
+        document.querySelectorAll('.optional-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const courseId = this.dataset.courseId;
+                const groupId = this.dataset.groupId;
+
+                fetch('/selector/optional-course', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `courseId=${courseId}&groupId=${groupId}`
+                }).then(() => {
+                    const groupButtons = document.querySelectorAll(`[data-group-id="${groupId}"]`);
+                    groupButtons.forEach(button => {
+                        button.classList.remove('selected');
+                        button.innerHTML = 'Select';
+                    });
+
+                    this.classList.add('selected');
+                    this.innerHTML = 'Selected';
+                });
+            });
+        });
+
+        document.querySelectorAll('.abroad-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const abroadId = this.dataset.abroadId;
+
+                fetch('/selector/abroad-semester', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `abroadSemesterId=${abroadId}`
+                }).then(() => {
+                    document.querySelectorAll('.abroad-btn').forEach(button => {
+                        button.classList.remove('selected');
+                        button.innerHTML = 'Select';
+                    });
+
+                    this.classList.add('selected');
+                    this.innerHTML = 'Selected';
+                });
+            });
+        });
+
+        document.querySelectorAll('.abroad-optional-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const courseId = this.dataset.courseId;
+                const groupId = this.dataset.groupId;
+
+                fetch('/selector/abroad-optional-course', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `courseId=${courseId}&groupId=${groupId}`
+                }).then(() => {
+                    const groupButtons = document.querySelectorAll(`[data-group-id="${groupId}"].abroad-optional-btn`);
+                    groupButtons.forEach(button => {
+                        button.classList.remove('selected');
+                        button.innerHTML = 'Select';
+                    });
+
+                    this.classList.add('selected');
+                    this.innerHTML = 'Selected';
+                });
+            });
+        });
     });
 </script>
 </body>
