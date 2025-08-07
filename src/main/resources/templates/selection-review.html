@@ -172,7 +172,7 @@
                     <div th:if="${!selectedOptionalCoursesByGroup.isEmpty()}" class="mb-4">
                         <h5 class="text-success mb-3">Selected Optional Courses</h5>
                         <div th:each="entry : ${selectedOptionalCoursesByGroup}" class="mb-3">
-                            <h6 class="text-muted">Optional Group - Semester <span th:text="${entry.key.semester}">3</span></h6>
+                            <h6 class="text-muted" th:text="${entry.key}">Optional Group - Semester 3</h6>
                             <div th:each="course : ${entry.value}" class="course-item optional-course">
                                 <div class="d-flex justify-content-between align-items-center">
                                     <div>

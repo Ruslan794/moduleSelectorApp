@@ -1,6 +1,7 @@
 package dev.rr.moduleselectorapp.selector
 
 import dev.rr.moduleselectorapp.selector.service.StudentSelectionService
+import dev.rr.moduleselectorapp.subject.model.Course
 import dev.rr.moduleselectorapp.subject.service.SubjectService
 import dev.rr.moduleselectorapp.survey.service.SurveyService
 import org.slf4j.LoggerFactory
@@ -86,37 +87,49 @@ class SelectorController(
         return "course-selection"
     }
 
-    @PostMapping("/clear-abroad")
-    fun clearAbroadSemester(redirectAttributes: RedirectAttributes): String {
-        studentSelectionService.clearAbroadSemester()
-        return "redirect:/selector/courses"
-    }
-
     @PostMapping("/optional-course")
     fun selectOptionalCourse(
         @RequestParam courseId: UUID,
+        @RequestParam(required = false) scrollTo: String?,
         redirectAttributes: RedirectAttributes
     ): String {
         studentSelectionService.selectOptionalCourse(courseId)
-        return "redirect:/selector/courses"
+        val redirectUrl = if (scrollTo != null) {
+            "redirect:/selector/courses?scrollTo=$scrollTo"
+        } else {
+            "redirect:/selector/courses"
+        }
+        return redirectUrl
     }
 
     @PostMapping("/abroad-semester")
     fun selectAbroadSemester(
         @RequestParam abroadSemesterId: UUID,
+        @RequestParam(required = false) scrollTo: String?,
         redirectAttributes: RedirectAttributes
     ): String {
         studentSelectionService.selectAbroadSemester(abroadSemesterId)
-        return "redirect:/selector/courses"
+        val redirectUrl = if (scrollTo != null) {
+            "redirect:/selector/courses?scrollTo=$scrollTo"
+        } else {
+            "redirect:/selector/courses"
+        }
+        return redirectUrl
     }
 
     @PostMapping("/abroad-optional-course")
     fun selectAbroadOptionalCourse(
         @RequestParam courseId: UUID,
+        @RequestParam(required = false) scrollTo: String?,
         redirectAttributes: RedirectAttributes
     ): String {
         studentSelectionService.selectAbroadOptionalCourse(courseId)
-        return "redirect:/selector/courses"
+        val redirectUrl = if (scrollTo != null) {
+            "redirect:/selector/courses?scrollTo=$scrollTo"
+        } else {
+            "redirect:/selector/courses"
+        }
+        return redirectUrl
     }
 
     @GetMapping("/review")
@@ -127,15 +140,24 @@ class SelectorController(
             return "redirect:/selector"
         }
 
-        val subject = selection.selectedSubject!!
+        val subject = subjectService.getSubjectById(selection.selectedSubject!!.id!!)!!
         val compulsoryCourses = subject.getCompulsoryCourses()
 
-        val selectedOptionalCoursesByGroup = selection.selectedOptionalCourses
-            .filter { it.optionalGroup != null && it.abroadSemester == null }
-            .groupBy { it.optionalGroup!! }
+        val selectedOptionalCoursesByGroup = mutableMapOf<String, List<Course>>()
+        val selectedAbroadOptionalCourses = mutableListOf<Course>()
 
-        val selectedAbroadOptionalCourses = selection.selectedOptionalCourses
-            .filter { it.abroadSemester != null }
+        selection.selectedOptionalCourses.forEach { course ->
+            when {
+                course.optionalGroup != null && course.abroadSemester == null -> {
+                    val groupKey = "Optional Group - Semester ${course.optionalGroup!!.semester}"
+                    selectedOptionalCoursesByGroup[groupKey] =
+                        (selectedOptionalCoursesByGroup[groupKey] ?: emptyList()) + course
+                }
+                course.abroadSemester != null -> {
+                    selectedAbroadOptionalCourses.add(course)
+                }
+            }
+        }
 
         model.addAttribute("selection", selection)
         model.addAttribute("subject", subject)

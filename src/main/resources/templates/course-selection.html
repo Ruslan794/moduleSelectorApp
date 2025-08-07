@@ -163,6 +163,8 @@
                         </div>
                         <form method="post" th:action="@{/selector/optional-course}" style="margin: 0;">
                             <input type="hidden" name="courseId" th:value="${course.id}">
+                            <input type="hidden" name="groupId" th:value="${group.id}">
+                            <input type="hidden" name="scrollTo" th:value="'semester-' + ${entry.key}">
                             <button type="submit" class="selection-button"
                                     th:classappend="${#lists.contains(selection.selectedOptionalCourses, course)} ? 'selected' : ''">
                                 <span th:if="${#lists.contains(selection.selectedOptionalCourses, course)}">Selected</span>
@@ -181,8 +183,9 @@
             <h4>Semester <span th:text="${entry.key}">4</span> - Study Abroad Options</h4>
         </div>
         <div class="card-body">
-            <p class="text-danger mb-3"><strong>Choose one abroad semester option (optional):</strong></p>
-            <div th:each="abroad : ${entry.value}" class="mb-4 p-3 border rounded">
+            <p class="text-danger mb-3"><strong>Choose one abroad semester option:</strong></p>
+            <div th:each="abroad : ${entry.value}" class="mb-4 p-3 border rounded"
+                 th:id="'abroad-' + ${abroad.id}">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div>
                         <h5 th:text="${abroad.university.name}">University Name</h5>
@@ -190,6 +193,7 @@
                     </div>
                     <form method="post" th:action="@{/selector/abroad-semester}" style="margin: 0;">
                         <input type="hidden" name="abroadSemesterId" th:value="${abroad.id}">
+                        <input type="hidden" name="scrollTo" th:value="'abroad-' + ${abroad.id}">
                         <button type="submit" class="selection-button"
                                 th:classappend="${selection.selectedAbroadSemester != null && selection.selectedAbroadSemester.id == abroad.id} ? 'selected' : ''">
                             <span th:if="${selection.selectedAbroadSemester != null && selection.selectedAbroadSemester.id == abroad.id}">Selected</span>
@@ -218,6 +222,8 @@
                                 </div>
                                 <form method="post" th:action="@{/selector/abroad-optional-course}" style="margin: 0;">
                                     <input type="hidden" name="courseId" th:value="${course.id}">
+                                    <input type="hidden" name="groupId" th:value="${group.id}">
+                                    <input type="hidden" name="scrollTo" th:value="'abroad-' + ${abroad.id}">
                                     <button type="submit" class="selection-button btn-sm"
                                             th:classappend="${#lists.contains(selection.selectedOptionalCourses, course)} ? 'selected' : ''">
                                         <span th:if="${#lists.contains(selection.selectedOptionalCourses, course)}">Selected</span>
@@ -228,13 +234,6 @@
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Clear abroad selection option -->
-            <div th:if="${selection.selectedAbroadSemester != null}" class="text-center mt-3">
-                <form method="post" th:action="@{/selector/clear-abroad}">
-                    <button type="submit" class="btn btn-outline-secondary btn-sm">Clear Abroad Selection</button>
-                </form>
             </div>
         </div>
     </div>
@@ -247,5 +246,17 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const scrollTo = urlParams.get('scrollTo');
+        if (scrollTo) {
+            const element = document.getElementById(scrollTo);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+    });
+</script>
 </body>
 </html>

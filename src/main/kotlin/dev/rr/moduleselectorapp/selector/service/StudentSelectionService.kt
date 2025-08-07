@@ -77,10 +77,13 @@ class StudentSelectionService(
         if (course != null) {
             val optionalGroup = course.optionalGroup
             if (optionalGroup != null) {
-                selection.selectedOptionalCourses.removeIf {
-                    it.optionalGroup?.id == optionalGroup.id
+                selection.selectedOptionalCourses.removeIf { existingCourse ->
+                    existingCourse.optionalGroup?.id == optionalGroup.id
                 }
-                selection.selectedOptionalCourses.add(course)
+
+                if (!selection.selectedOptionalCourses.any { it.id == course.id }) {
+                    selection.selectedOptionalCourses.add(course)
+                }
                 saveToSession(selection)
             }
         }
@@ -107,13 +110,16 @@ class StudentSelectionService(
         val selection = getFromSession() ?: return null
         val course = courseService.getCourseById(courseId)
 
-        if (course != null && course.abroadSemester == selection.selectedAbroadSemester) {
+        if (course != null && course.abroadSemester?.id == selection.selectedAbroadSemester?.id) {
             val optionalGroup = course.optionalGroup
             if (optionalGroup != null) {
-                selection.selectedOptionalCourses.removeIf {
-                    it.optionalGroup?.id == optionalGroup.id
+                selection.selectedOptionalCourses.removeIf { existingCourse ->
+                    existingCourse.optionalGroup?.id == optionalGroup.id && existingCourse.abroadSemester != null
                 }
-                selection.selectedOptionalCourses.add(course)
+
+                if (!selection.selectedOptionalCourses.any { it.id == course.id }) {
+                    selection.selectedOptionalCourses.add(course)
+                }
                 saveToSession(selection)
             }
         }
@@ -135,16 +141,6 @@ class StudentSelectionService(
             return savedSelection
         }
         return null
-    }
-
-    @Transactional
-    fun clearAbroadSemester(): StudentSelection? {
-        val selection = getFromSession() ?: return null
-
-        selection.selectedAbroadSemester = null
-        selection.selectedOptionalCourses.removeIf { it.abroadSemester != null }
-        saveToSession(selection)
-        return selection
     }
 
     @Transactional(readOnly = true)
