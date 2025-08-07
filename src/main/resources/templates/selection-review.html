@@ -125,15 +125,9 @@
         <div class="card-header personal-info-card">
             <div class="d-flex justify-content-between align-items-center">
                 <h3 class="mb-0">Personal Information</h3>
-                <button type="button" class="btn btn-outline-light btn-sm"
-                        onclick="openPersonalDataModal({
-                            name: '[[${selection.surveyData.name}]]',
-                            surname: '[[${selection.surveyData.surname}]]',
-                            birthDate: '[[${selection.surveyData.birthDate}]]',
-                            matriculation: '[[${selection.surveyData.matriculation}]]',
-                            country: '[[${selection.surveyData.country}]]',
-                            email: '[[${selection.surveyData.email}]]'
-                        })">Edit Personal Data</button>
+                <button type="button" class="btn btn-outline-light btn-sm" onclick="openPersonalDataModal()">
+                    Edit Personal Data
+                </button>
             </div>
         </div>
         <div class="card-body">
@@ -151,7 +145,7 @@
                 </div>
                 <div class="col-md-6">
                     <div class="mb-3">
-                        <strong>Birth Date:</strong> <span th:text="${#temporals.format(selection.surveyData.birthDate, 'dd/MM/yyyy')}">01/01/2000</span>
+                        <strong>Birth Date:</strong> <span th:text="${selection.surveyData.birthDate}">01.01.2000</span>
                     </div>
                     <div class="mb-3">
                         <strong>Student ID:</strong> <span th:text="${selection.surveyData.matriculation ?: 'Not provided'}">12345</span>
@@ -379,21 +373,14 @@
     });
 </script>
 
-
 <script>
-    function openPersonalDataModal(surveyData) {
-        document.getElementById('modalName').value = surveyData.name || '';
-        document.getElementById('modalSurname').value = surveyData.surname || '';
-
-        if (surveyData.birthDate) {
-            const date = new Date(surveyData.birthDate);
-            const formattedDate = date.toISOString().split('T')[0];
-            document.getElementById('modalBirthDate').value = formattedDate;
-        }
-
-        document.getElementById('modalMatriculation').value = surveyData.matriculation || '';
-        document.getElementById('modalCountry').value = surveyData.country || '';
-        document.getElementById('modalEmail').value = surveyData.email || '';
+    function openPersonalDataModal() {
+        document.getElementById('modalName').value = '[[${selection.surveyData.name}]]';
+        document.getElementById('modalSurname').value = '[[${selection.surveyData.surname}]]';
+        document.getElementById('modalBirthDate').value = '[[${selection.surveyData.birthDate}]]';
+        document.getElementById('modalMatriculation').value = '[[${selection.surveyData.matriculation}]]';
+        document.getElementById('modalCountry').value = '[[${selection.surveyData.country}]]';
+        document.getElementById('modalEmail').value = '[[${selection.surveyData.email}]]';
 
         new bootstrap.Modal(document.getElementById('personalDataModal')).show();
     }
@@ -417,6 +404,29 @@
                 alert('Error updating personal data');
             }
         });
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const confirmationCheck = document.getElementById('confirmationCheck');
+        const finalizeBtn = document.getElementById('finalizeBtn');
+
+        confirmationCheck.addEventListener('change', function() {
+            finalizeBtn.disabled = !this.checked;
+        });
+
+        const modalBirthDate = document.getElementById('modalBirthDate');
+        if (modalBirthDate) {
+            modalBirthDate.addEventListener('input', function() {
+                let value = this.value.replace(/\D/g, '');
+                if (value.length >= 2) {
+                    value = value.substring(0, 2) + '.' + value.substring(2);
+                }
+                if (value.length >= 5) {
+                    value = value.substring(0, 5) + '.' + value.substring(5, 9);
+                }
+                this.value = value;
+            });
+        }
     });
 </script>
 

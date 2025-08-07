@@ -81,7 +81,7 @@ class SurveyController(
         val surveyData = SurveyData().apply {
             this.name = name
             this.surname = surname
-            this.birthDate = if (birthDate.isNotBlank()) LocalDate.parse(birthDate) else null
+            this.birthDate = birthDate
             this.matriculation = matriculation
             this.country = country
             this.email = email

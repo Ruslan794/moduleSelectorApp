@@ -40,11 +40,9 @@
             <p class="text-muted">Please fill out the form to proceed with module selection.</p>
         </div>
 
-        <!-- Success message -->
         <div th:if="${success}" class="success-message" th:text="${success}"></div>
 
         <form th:action="@{/survey}" th:object="${surveyData}" method="post" novalidate>
-            <!-- Name field -->
             <div class="mb-3">
                 <label for="name" class="form-label">First Name *</label>
                 <input type="text" class="form-control" th:field="*{name}" id="name"
@@ -52,7 +50,6 @@
                 <div class="error" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div>
             </div>
 
-            <!-- Surname field -->
             <div class="mb-3">
                 <label for="surname" class="form-label">Last Name *</label>
                 <input type="text" class="form-control" th:field="*{surname}" id="surname"
@@ -60,22 +57,19 @@
                 <div class="error" th:if="${#fields.hasErrors('surname')}" th:errors="*{surname}"></div>
             </div>
 
-            <!-- Birth date field -->
             <div class="mb-3">
-                <label for="birthDate" class="form-label">Date of Birth *</label>
-                <input type="date" class="form-control" th:field="*{birthDate}" id="birthDate"
-                       th:value="${surveyData.birthDate != null ? #temporals.format(surveyData.birthDate, 'yyyy-MM-dd') : ''}"
+                <label for="birthDate" class="form-label">Date of Birth (dd.MM.yyyy) *</label>
+                <input type="text" class="form-control" th:field="*{birthDate}" id="birthDate"
+                       placeholder="01.01.2000"
                        th:classappend="${#fields.hasErrors('birthDate')} ? 'is-invalid' : ''">
                 <div class="error" th:if="${#fields.hasErrors('birthDate')}" th:errors="*{birthDate}"></div>
             </div>
 
-            <!-- Matriculation field -->
             <div class="mb-3">
                 <label for="matriculation" class="form-label">Student ID</label>
                 <input type="text" class="form-control" th:field="*{matriculation}" id="matriculation">
             </div>
 
-            <!-- Country field -->
             <div class="mb-3">
                 <label for="country" class="form-label">Country *</label>
                 <input type="text" class="form-control" th:field="*{country}" id="country"
@@ -83,7 +77,6 @@
                 <div class="error" th:if="${#fields.hasErrors('country')}" th:errors="*{country}"></div>
             </div>
 
-            <!-- Email field -->
             <div class="mb-3">
                 <label for="email" class="form-label">Email *</label>
                 <input type="email" class="form-control" th:field="*{email}" id="email"
@@ -100,50 +93,18 @@
 </div>
 
 <script>
-    // Format date input to match the expected pattern (dd/MM/yyyy)
     document.addEventListener('DOMContentLoaded', function() {
-        const dateInput = document.getElementById('birthDate');
-        if (dateInput) {
-            dateInput.addEventListener('change', function() {
-                const date = new Date(this.value);
-                if (!isNaN(date.getTime())) {
-                    const day = String(date.getDate()).padStart(2, '0');
-                    const month = String(date.getMonth() + 1).padStart(2, '0');
-                    const year = date.getFullYear();
-                }
-            });
-        }
+        const birthDateInput = document.getElementById('birthDate');
 
-        // Email validation
-        const form = document.querySelector('form');
-        const emailInput = document.getElementById('email');
-        const emailError = document.createElement('div');
-        emailError.className = 'error';
-        emailError.textContent = 'Email must contain @ symbol';
-        emailError.style.display = 'none';
-        emailInput.parentNode.appendChild(emailError);
-
-        form.addEventListener('submit', function(event) {
-            // Check for @ in email
-            if (emailInput.value && !emailInput.value.includes('@')) {
-                event.preventDefault();
-                emailError.style.display = 'block';
-                emailInput.classList.add('is-invalid');
-            } else {
-                emailError.style.display = 'none';
-                emailInput.classList.remove('is-invalid');
+        birthDateInput.addEventListener('input', function() {
+            let value = this.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '.' + value.substring(2);
             }
-        });
-
-        // Real-time validation
-        emailInput.addEventListener('input', function() {
-            if (this.value && !this.value.includes('@')) {
-                emailError.style.display = 'block';
-                this.classList.add('is-invalid');
-            } else {
-                emailError.style.display = 'none';
-                this.classList.remove('is-invalid');
+            if (value.length >= 5) {
+                value = value.substring(0, 5) + '.' + value.substring(5, 9);
             }
+            this.value = value;
         });
     });
 </script>

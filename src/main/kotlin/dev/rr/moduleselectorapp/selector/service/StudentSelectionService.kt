@@ -72,9 +72,36 @@ class StudentSelectionService(
             selection.selectedSubject = subject
             selection.selectedOptionalCourses.clear()
             selection.selectedAbroadSemester = null
+
+            autoSelectDefaults(selection, subject)
             saveToSession(selection)
         }
         return selection
+    }
+
+    private fun autoSelectDefaults(selection: StudentSelection, subject: Subject) {
+        if (subject.abroadSemestersToChoose.isNotEmpty()) {
+            val firstAbroadSemester = subject.abroadSemestersToChoose.first()
+            selection.selectedAbroadSemester = firstAbroadSemester
+
+            subject.optionalCourseGroups.forEach { group ->
+                if (group.coursesToChoose.isNotEmpty()) {
+                    selection.selectedOptionalCourses.add(group.coursesToChoose.first())
+                }
+            }
+
+            firstAbroadSemester.optionalCourseGroups.forEach { group ->
+                if (group.coursesToChoose.isNotEmpty()) {
+                    selection.selectedOptionalCourses.add(group.coursesToChoose.first())
+                }
+            }
+        } else {
+            subject.optionalCourseGroups.forEach { group ->
+                if (group.coursesToChoose.isNotEmpty()) {
+                    selection.selectedOptionalCourses.add(group.coursesToChoose.first())
+                }
+            }
+        }
     }
 
     @Transactional
