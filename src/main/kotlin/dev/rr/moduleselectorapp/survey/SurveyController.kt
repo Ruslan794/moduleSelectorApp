@@ -56,9 +56,7 @@ class SurveyController(
         val savedData = surveyService.getFromSession()
         logger.info("Survey data saved in session: $savedData")
         logger.info("Survey data: ${savedData.toString()}")
-
-        redirectAttributes.addFlashAttribute("success", "Thanks!")
-        return "redirect:/"
+        return "redirect:/selector"
     }
 
     @GetMapping("/survey/clear")
